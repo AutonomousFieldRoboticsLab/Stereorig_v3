@@ -1,0 +1,6 @@
+/aruco_node:
+  ros__parameters:
+    marker_size: 0.055
+    aruco_dictionary_id: DICT_ARUCO_ORIGINAL
+    camera_info_topic: /jetson_1/flir_camera/camera_info
+    image_topic: /jetson_1/flir_camera/image_raw
