@@ -174,6 +174,7 @@ def generate_launch_description():
     rosbag_node = Node(
         package='ros2_bringup',
         executable='rosbag.py',
+        namespace=namespace,
         parameters=[{'device': device}]
     )
 
