@@ -1,31 +1,40 @@
 # Stereorig_v3
-
-## Git clone the repo inside stereorig primary/secondary modules
-`cd /ws/src/`
-
-`git clone https://github.com/AutonomousFieldRoboticsLab/Stereorig_v3.git .`
-
-## Enter the Docker container
-`docker --exec -it <container-name> /bin/bash`
-
-## Source the .bashrc
-`source ~/.bashrc`
-
-## Source ros
-`source /opt/ros/humble/setup.bash`
-
-## Source workspace
-`cd /ws`
-
-`source install/local_setup.bash`
-
-## Script to stop docker-container.service
-### Primary 
-`systemctl stop --user docker-container.service` 
-
-### Secondary 
-`systemctl stop docker-container.service`
+This repository contains the setup files and launch configuration for the Stereorig system.
 
 
+## Jetson setup
+
+Refer to the `Jetson_setup.pdf` for Jetson setup instructions.
+
+## Clone the Repository
+
+`git clone https://github.com/AutonomousFieldRoboticsLab/Stereorig_v3.git`
+
+## Configure the Launch Script
+
+For the secondary Jetson, update launch.sh to use the following ROS 2 launch command:
+
+`ros2 launch ros2_bringup stereorig_2.launch.py namespace:="jetson_2"`
+
+## Build the Docker Image
+Build the Docker image from the repository directory:
+
+`docker build -t abe`
+
+## Register the Systemd Service
+To automatically start the Docker container on boot, register `docker-container.service` with systemd.
+
+`sudo cp docker-container.service /etc/systemd/system/docker-container.service`
 
 
+`sudo systemctl daemon-reload`
+
+`sudo systemctl enable myapp.service`
+
+`sudo systemctl start myapp.service`
+
+## View Service logs
+
+To monitor the service logs, run:
+
+`journalctl -u docker-container.service -f`
