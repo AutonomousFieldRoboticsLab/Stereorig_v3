@@ -10,11 +10,18 @@ Refer to the `Jetson_setup.pdf` for Jetson setup instructions.
 
 `git clone https://github.com/AutonomousFieldRoboticsLab/Stereorig_v3.git`
 
+## Move Config Folder
+
+Move the `config` folder to your data folder.
+
 ## Configure the Launch Script
 
 For the secondary Jetson, update launch.sh to use the following ROS 2 launch command:
 
 `ros2 launch ros2_bringup stereorig_2.launch.py namespace:="jetson_2"`
+
+## Change Paths
+Change the data and log folder paths in the `docker-container.service` file
 
 ## Build the Docker Image
 Build the Docker image from the repository directory:
