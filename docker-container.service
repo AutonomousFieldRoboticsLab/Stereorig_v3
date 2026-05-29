@@ -1,0 +1,22 @@
+[Service]
+Environment="DISPLAY=:0"
+Environment="XAUTHORITY=/run/user/1000/gdm/Xauthority"
+
+ExecStartPre=/bin/bash -c 'if chronyc tracking | grep -q "System time.*not synchronized"; then echo "Time is not synchronized. Waiting for 30 seconds."; sleep 30; else echo "Time is synchronized. Proceeding."; fi'
+
+ExecStartPre=/usr/sbin/runuser -u afrl -- /usr/bin/env DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority /usr/bin/xhost +SI:localuser:root
+
+ExecStart=/usr/bin/docker run --net=host --rm \
+  -e DISPLAY=:0 \
+  -e QT_X11_NO_MITSHM=1 \
+  -v "/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+  -v "/home/afrl/Desktop/data:/ws/data" \
+  -v /dev:/dev \
+  -v "/home/afrl/Desktop/log:/ws/log" \
+  --privileged abe
+
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=graphical.target
