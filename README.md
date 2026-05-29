@@ -29,9 +29,9 @@ To automatically start the Docker container on boot, register `docker-container.
 
 `sudo systemctl daemon-reload`
 
-`sudo systemctl enable myapp.service`
+`sudo systemctl enable docker-container.service`
 
-`sudo systemctl start myapp.service`
+`sudo systemctl start docker-container.service`
 
 ## View Service logs
 
