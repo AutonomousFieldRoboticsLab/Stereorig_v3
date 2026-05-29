@@ -19,7 +19,7 @@ For the secondary Jetson, update launch.sh to use the following ROS 2 launch com
 ## Build the Docker Image
 Build the Docker image from the repository directory:
 
-`docker build -t abe`
+`docker build -t abe .`
 
 ## Register the Systemd Service
 To automatically start the Docker container on boot, register `docker-container.service` with systemd.
