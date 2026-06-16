@@ -145,9 +145,15 @@ class ArucoNode(rclpy.node.Node):
         self.intrinsic_mat = None
         self.distortion = None
 
-        dictionary = cv2.aruco.getPredefinedDictionary(dictionary_id)
-        parameters =  cv2.aruco.DetectorParameters()
-        self.detector = cv2.aruco.ArucoDetector(dictionary, parameters)
+        # Initialize detector for different OpenCV versions
+        if cv2.__version__ >= "4.7.0":
+            dictionary = cv2.aruco.getPredefinedDictionary(dictionary_id)
+            parameters = cv2.aruco.DetectorParameters()
+            self.detector = cv2.aruco.ArucoDetector(dictionary, parameters)
+        else:
+            self.aruco_dict = cv2.aruco.getPredefinedDictionary(dictionary_id)
+            self.parameters = cv2.aruco.DetectorParameters_create()
+            self.detector = None  # Will use legacy API
 
         self.bridge = CvBridge()
 
@@ -176,7 +182,13 @@ class ArucoNode(rclpy.node.Node):
         markers.header.stamp = img_msg.header.stamp
         pose_array.header.stamp = img_msg.header.stamp
 
-        corners, marker_ids, rejected = self.detector.detectMarkers(cv_image)
+        # Detect markers based on OpenCV version
+        if cv2.__version__ >= "4.7.0":
+            corners, marker_ids, rejected = self.detector.detectMarkers(cv_image)
+        else:
+            corners, marker_ids, rejected = cv2.aruco.detectMarkers(
+                cv_image, self.aruco_dict, parameters=self.parameters
+            )
 
         if marker_ids is not None:
             if cv2.__version__ > "4.0.0":
@@ -204,7 +216,7 @@ class ArucoNode(rclpy.node.Node):
 
                 pose_array.poses.append(pose)
                 markers.poses.append(pose)
-                markers.marker_ids.append(marker_id[0])
+                markers.marker_ids.append(int(marker_id[0]))
 
             self.poses_pub.publish(pose_array)
             self.markers_pub.publish(markers)

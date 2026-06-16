@@ -18,6 +18,14 @@ def generate_launch_description():
             executable='custom_guyi',
             name='custom_guyi',
             output='screen',
-            parameters=[{'cam_topic': cam_topic, 'device' : device, 'imu_topic' : imu_topic, 'depth_topic' : depth_topic, 'sonar_topic' : sonar_topic, 'tag_topic': tag_topic, 'bag_topic': bag_topic}]
+            parameters=[{
+                'cam_topic': cam_topic, 
+                'device' : device, 
+                'imu_topic' : imu_topic, 
+                'depth_topic' : depth_topic, 
+                'sonar_topic' : sonar_topic, 
+                'tag_topic': tag_topic, 
+                'bag_topic': bag_topic
+            }]
         )
     ])

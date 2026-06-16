@@ -156,7 +156,7 @@ def generate_launch_description():
             PushRosNamespace(namespace),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(os.path.join(screen_dir, 'launch', 'gui.launch.py')),
-                launch_arguments={'cam_topic': cam_topic, 'device': device}.items(),
+                launch_arguments={'cam_topic': cam_topic, 'device': device, 'tag_topic': 'aruco_markers'}.items(),
             )
         ]
     )

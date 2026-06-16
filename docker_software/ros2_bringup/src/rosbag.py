@@ -23,6 +23,7 @@ class Rosbag(Node):
         print(self.device)
         
         self.bag_status = "Not Active"
+        self.writer_active = False
 
         ct = datetime.datetime.now()
         ct_str = ct.strftime("%Y-%m-%d-%H_%M_%S")
@@ -55,6 +56,9 @@ class Rosbag(Node):
         self.tag_sub = self.create_subscription(Int32, f'/jetson_1/tag_id', self.tag_callback, 10)
 
         self.bag_pub = self.create_publisher(String, f'/{self.device}/bag', 10)
+        
+        # Create a timer to publish bag status regularly (every 1 second)
+        self.timer = self.create_timer(1.0, self.publish_bag)
 
 
     def publish_bag(self):
@@ -65,6 +69,7 @@ class Rosbag(Node):
     def set_topics(self):
 
         self.bag_status = "Active"
+        self.writer_active = True
 
         topic_info_image = rosbag2_py._storage.TopicMetadata(
             name=f'/{self.device}/flir_camera/image_raw/compressed',
@@ -115,49 +120,64 @@ class Rosbag(Node):
         self.writer.create_topic(topic_info_sonar_raw)
 
     def image_callback(self, msg):
-        self.publish_bag()
+        if not self.writer_active:
+            return
         self.writer.write(
             f'/{self.device}/flir_camera/image_raw/compressed',
             serialize_message(msg),
             self.get_clock().now().nanoseconds)
 
     def depth_callback(self, msg):
+        if not self.writer_active:
+            return
         self.writer.write(
             f'/{self.device}/bar30/depth',
             serialize_message(msg),
             self.get_clock().now().nanoseconds)
 
     def pressure_callback(self, msg):
+        if not self.writer_active:
+            return
         self.writer.write(
             f'/{self.device}/bar30/pressure',
             serialize_message(msg),
             self.get_clock().now().nanoseconds)
 
     def temp_callback(self, msg):
+        if not self.writer_active:
+            return
         self.writer.write(
             f'/{self.device}/bar30/temperature',
             serialize_message(msg),
             self.get_clock().now().nanoseconds)
 
     def sonar_callback(self, msg):
+        if not self.writer_active:
+            return
         self.writer.write(
             f'/{self.device}/imagenex831l/range',
             serialize_message(msg),
             self.get_clock().now().nanoseconds)
 
     def imu_callback(self, msg):
+        if not self.writer_active:
+            return
         self.writer.write(
             f'/{self.device}/imu/data',
             serialize_message(msg),
             self.get_clock().now().nanoseconds)
 
     def ekf_callback(self, msg):
+        if not self.writer_active:
+            return
         self.writer.write(
             f'/{self.device}/ekf/status',
             serialize_message(msg),
             self.get_clock().now().nanoseconds)
 
     def sonar_raw_callback(self, msg):
+        if not self.writer_active:
+            return
         self.writer.write(
             f'/{self.device}/imagenex831l/range_raw',
             serialize_message(msg),
@@ -167,15 +187,16 @@ class Rosbag(Node):
         
         tag_id = msg.data  
         if tag_id == 1:  
-            if self.writer:
+            if self.writer and self.writer_active:
                 self.get_logger().info("Closing rosbag due to tag ID 1.")
                 self.writer.close()
                 self.bag_status = "Not Active"
+                self.writer_active = False
                 self.writer = None
             else:
                 self.get_logger().info("No rosbag is currently running.")
         elif tag_id == 2:
-            if self.writer is None:
+            if not self.writer_active:
                 self.get_logger().info("Starting a new rosbag due to tag ID 2.")
                 ct = datetime.datetime.now()
                 ct_str = ct.strftime("%Y-%m-%d-%H_%M_%S")
