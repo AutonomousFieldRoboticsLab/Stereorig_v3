@@ -40,6 +40,9 @@ To automatically start the Docker container on boot, register `docker-container.
 
 `sudo systemctl start docker-container.service`
 
+__Note__:
+Set different `ROS_DOMAIN_ID` on each computer to decouple ROS, this would address the frame rate drop issue by saving the bandwidth when running multiple Jetsons on the same network.
+
 ## View Service logs
 
 To monitor the service logs, run:

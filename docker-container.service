@@ -9,6 +9,8 @@ ExecStartPre=/usr/sbin/runuser -u afrl -- /usr/bin/env DISPLAY=:0 XAUTHORITY=/ru
 ExecStart=/usr/bin/docker run --net=host --rm \
   -e DISPLAY=:0 \
   -e QT_X11_NO_MITSHM=1 \
+  -e ROS_DOMAIN_ID=0 \
+  -e ROS_LOCALHOST_ONLY=1 \
   -v "/tmp/.X11-unix:/tmp/.X11-unix:rw" \
   -v "/home/afrl/Desktop/data:/ws/data" \
   -v /dev:/dev \
