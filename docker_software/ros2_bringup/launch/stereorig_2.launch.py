@@ -166,7 +166,11 @@ def generate_launch_description():
             PushRosNamespace(namespace),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(os.path.join(tag_dir, 'launch', 'aruco_recognition.launch.py')),
-                launch_arguments={'image_topic': cam_topic, 'aruco_dictionary_id': 'DICT_ARUCO_ORIGINAL', 'camera_info_topic': '/image_raw/camera_info'}.items(),
+                launch_arguments={
+                    'image_topic': cam_topic, 
+                    'aruco_dictionary_id': 'DICT_ARUCO_ORIGINAL',
+                    'camera_info_topic': 'flir_camera/camera_info',
+                }.items(),
             )
         ]
     )

@@ -36,6 +36,7 @@ import cv2
 import tf_transformations
 from sensor_msgs.msg import CameraInfo
 from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import PoseArray, Pose
 from ros2_aruco_interfaces.msg import ArucoMarkers
 from rcl_interfaces.msg import ParameterDescriptor, ParameterType
@@ -46,6 +47,18 @@ class ArucoNode(rclpy.node.Node):
         super().__init__("aruco_node")
 
         # Declare and read parameters
+        self.declare_parameter(
+            name="device",
+            value="",
+            descriptor=ParameterDescriptor(
+                type=ParameterType.PARAMETER_STRING,
+                description="Device namespace prefix for camera topics.",
+            ),
+        )
+
+        device = self.get_parameter("device").get_parameter_value().string_value
+        self.get_logger().info(f"Device: {device}")
+
         self.declare_parameter(
             name="marker_size",
             value=0.0625,
@@ -66,7 +79,7 @@ class ArucoNode(rclpy.node.Node):
 
         self.declare_parameter(
             name="image_topic",
-            value="/jetson_1/flir_camera/image_raw",
+            value=f"/{device}/flir_camera/image_raw" if device else "/flir_camera/image_raw",
             descriptor=ParameterDescriptor(
                 type=ParameterType.PARAMETER_STRING,
                 description="Image topic to subscribe to.",
@@ -75,7 +88,7 @@ class ArucoNode(rclpy.node.Node):
 
         self.declare_parameter(
             name="camera_info_topic",
-            value="/jetson_1/flir_camera/camera_info",
+            value=f"/{device}/flir_camera/camera_info" if device else "/flir_camera/camera_info",
             descriptor=ParameterDescriptor(
                 type=ParameterType.PARAMETER_STRING,
                 description="Camera info topic to subscribe to.",
@@ -106,6 +119,12 @@ class ArucoNode(rclpy.node.Node):
         )
         self.get_logger().info(f"Image topic: {image_topic}")
 
+        self.use_compressed_image = image_topic.endswith("/compressed")
+        if self.use_compressed_image:
+            self.get_logger().info("Using compressed image transport")
+        else:
+            self.get_logger().info("Using raw image transport")
+
         info_topic = (
             self.get_parameter("camera_info_topic").get_parameter_value().string_value
         )
@@ -132,9 +151,17 @@ class ArucoNode(rclpy.node.Node):
             CameraInfo, info_topic, self.info_callback, qos_profile_sensor_data
         )
 
-        self.create_subscription(
-            Image, image_topic, self.image_callback, qos_profile_sensor_data
-        )
+        if self.use_compressed_image:
+            self.create_subscription(
+                CompressedImage,
+                image_topic,
+                self.image_callback,
+                qos_profile_sensor_data,
+            )
+        else:
+            self.create_subscription(
+                Image, image_topic, self.image_callback, qos_profile_sensor_data
+            )
 
         # Set up publishers
         self.poses_pub = self.create_publisher(PoseArray, "aruco_poses", 10)
@@ -169,7 +196,12 @@ class ArucoNode(rclpy.node.Node):
             self.get_logger().warn("No camera info has been received!")
             return
 
-        cv_image = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding="mono8")
+        if self.use_compressed_image:
+            cv_image = self.bridge.compressed_imgmsg_to_cv2(
+                img_msg, desired_encoding="mono8"
+            )
+        else:
+            cv_image = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding="mono8")
         markers = ArucoMarkers()
         pose_array = PoseArray()
         if self.camera_frame == "":
