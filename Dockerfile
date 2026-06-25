@@ -46,6 +46,9 @@ RUN apt-get update && apt-get install -y \
     python3-pytest-rerunfailures \
     libasio-dev \
     ros-humble-ros-core \
+    ros-humble-rqt-graph \
+    ros-humble-rosbag2 \
+    ros-humble-ros2bag \
     ros-humble-ament-cmake-clang-format \
     python3-colcon-common-extensions \
     python3-rosdep \
