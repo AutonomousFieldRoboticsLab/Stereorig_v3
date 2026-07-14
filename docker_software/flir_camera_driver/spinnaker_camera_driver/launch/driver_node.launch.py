@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +21,9 @@ from launch.actions import OpaqueFunction
 from launch.substitutions import LaunchConfiguration as LaunchConfig
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
+
 
 example_parameters = {
     'blackfly_s': {
@@ -30,15 +32,19 @@ example_parameters = {
         'compute_brightness': False,
         'adjust_timestamp': True,
         'dump_node_map': False,
+
         # set parameters defined in blackfly_s.yaml
         'gain_auto': 'Continuous',
         'exposure_auto': 'Continuous',
+
         # to use a user set, do this:
         'user_set_selector': 'UserSet0',
         'user_set_load': 'Yes',
+
         # These are useful for GigE cameras
         # 'device_link_throughput_limit': 380000000,
         # 'gev_scps_packet_size': 9000,
+
         # ---- to reduce the sensor width and shift the crop
         # 'image_width': 1408,
         # 'image_height': 1080,
@@ -47,11 +53,13 @@ example_parameters = {
         # 'binning_x': 1,
         # 'binning_y': 1,
         # 'connect_while_subscribed': True,
+
         'frame_rate_auto': 'Off',
         'frame_rate': 20.0,
         'frame_rate_enable': True,
         'buffer_queue_size': 10,
         'trigger_mode': 'Off',
+
         'chunk_mode_active': True,
         'chunk_selector_frame_id': 'FrameID',
         'chunk_enable_frame_id': True,
@@ -61,8 +69,10 @@ example_parameters = {
         'chunk_enable_gain': True,
         'chunk_selector_timestamp': 'Timestamp',
         'chunk_enable_timestamp': True,
+
         'adc_bit_depth': "Bit12",
     },
+
     'blackfly': {
         'debug': False,
         'dump_node_map': False,
@@ -74,13 +84,16 @@ example_parameters = {
         'frame_rate_enable': True,
         'buffer_queue_size': 10,
         'trigger_mode': 'Off',
+
         # 'stream_buffer_handling_mode': 'NewestFirst',
         # 'multicast_monitor_mode': False
     },
+
     'chameleon': {
         'debug': False,
         'compute_brightness': False,
         'dump_node_map': False,
+
         # set parameters defined in chameleon.yaml
         'gain_auto': 'Continuous',
         'exposure_auto': 'Continuous',
@@ -92,6 +105,7 @@ example_parameters = {
         'frame_rate_continous': True,
         'frame_rate': 100.0,
         'trigger_mode': 'Off',
+
         'chunk_mode_active': True,
         'chunk_selector_frame_id': 'FrameID',
         'chunk_enable_frame_id': True,
@@ -102,16 +116,19 @@ example_parameters = {
         'chunk_selector_timestamp': 'Timestamp',
         'chunk_enable_timestamp': True,
     },
+
     'grasshopper': {
         'debug': False,
         'compute_brightness': False,
         'dump_node_map': False,
+
         # set parameters defined in grasshopper.yaml
         'gain_auto': 'Continuous',
         'exposure_auto': 'Continuous',
         'frame_rate_auto': 'Off',
         'frame_rate': 100.0,
         'trigger_mode': 'Off',
+
         'chunk_mode_active': True,
         'chunk_selector_frame_id': 'FrameID',
         'chunk_enable_frame_id': True,
@@ -122,11 +139,13 @@ example_parameters = {
         'chunk_selector_timestamp': 'Timestamp',
         'chunk_enable_timestamp': True,
     },
+
     'flir_ax5': {
         'debug': False,
         'compute_brightness': False,
         'adjust_timestamp': False,
         'dump_node_map': False,
+
         # --- Set parameters defined in flir_ax5.yaml
         'pixel_format': 'Mono8',
         'gev_scps_packet_size': 576,
@@ -134,27 +153,42 @@ example_parameters = {
         'image_height': 512,
         'offset_x': 0,
         'offset_y': 0,
-        'sensor_gain_mode': 'HighGainMode',  # "HighGainMode" "LowGainMode"
-        'nuc_mode': 'Automatic',  # "Automatic" "External" "Manual"
-        'sensor_dde_mode': 'Automatic',  # "Automatic" "Manual"
-        'sensor_video_standard': 'NTSC30HZ',  # "NTSC30HZ" "PAL25Hz" "NTSC60HZ" "PAL50HZ"
-        # valid values: "PlateauHistogram" "OnceBright" "AutoBright" "Manual" "Linear"
+        'sensor_gain_mode': 'HighGainMode',
+        'nuc_mode': 'Automatic',
+        'sensor_dde_mode': 'Automatic',
+        'sensor_video_standard': 'NTSC30HZ',
+
+        # valid values:
+        # "PlateauHistogram"
+        # "OnceBright"
+        # "AutoBright"
+        # "Manual"
+        # "Linear"
         'image_adjust_method': 'PlateauHistogram',
-        'video_orientation': 'Normal',  # "Normal" "Invert" "Revert" "InvertRevert"
+        'video_orientation': 'Normal',
     },
 }
 
 
 def launch_setup(context, *args, **kwargs):
     """Launch camera driver node."""
+
     parameter_file = LaunchConfig('parameter_file').perform(context)
     camera_type = LaunchConfig('camera_type').perform(context)
+
     if not parameter_file:
         parameter_file = PathJoinSubstitution(
-            [FindPackageShare('spinnaker_camera_driver'), 'config', camera_type + '.yaml']
+            [
+                FindPackageShare('spinnaker_camera_driver'),
+                'config',
+                camera_type + '.yaml',
+            ]
         )
+
     if camera_type not in example_parameters:
-        raise Exception('no example parameters available for type ' + camera_type)
+        raise Exception(
+            'no example parameters available for type ' + camera_type
+        )
 
     node = Node(
         package='spinnaker_camera_driver',
@@ -163,7 +197,103 @@ def launch_setup(context, *args, **kwargs):
         name=[LaunchConfig('camera_name')],
         parameters=[
             example_parameters[camera_type],
+
+            # These values are forwarded by stereorig_2.launch.py
+            # from parms.yaml. Because this dictionary comes after
+            # example_parameters, these values override the defaults.
             {
+                'debug': ParameterValue(
+                    LaunchConfig('debug'),
+                    value_type=bool,
+                ),
+                'compute_brightness': ParameterValue(
+                    LaunchConfig('compute_brightness'),
+                    value_type=bool,
+                ),
+                'adjust_timestamp': ParameterValue(
+                    LaunchConfig('adjust_timestamp'),
+                    value_type=bool,
+                ),
+                'dump_node_map': ParameterValue(
+                    LaunchConfig('dump_node_map'),
+                    value_type=bool,
+                ),
+
+                'gain_auto': ParameterValue(
+                    LaunchConfig('gain_auto'),
+                    value_type=str,
+                ),
+                'exposure_auto': ParameterValue(
+                    LaunchConfig('exposure_auto'),
+                    value_type=str,
+                ),
+                'user_set_selector': ParameterValue(
+                    LaunchConfig('user_set_selector'),
+                    value_type=str,
+                ),
+                'user_set_load': ParameterValue(
+                    LaunchConfig('user_set_load'),
+                    value_type=str,
+                ),
+
+                'frame_rate_auto': ParameterValue(
+                    LaunchConfig('frame_rate_auto'),
+                    value_type=str,
+                ),
+                'frame_rate': ParameterValue(
+                    LaunchConfig('frame_rate'),
+                    value_type=float,
+                ),
+                'frame_rate_enable': ParameterValue(
+                    LaunchConfig('frame_rate_enable'),
+                    value_type=bool,
+                ),
+                'buffer_queue_size': ParameterValue(
+                    LaunchConfig('buffer_queue_size'),
+                    value_type=int,
+                ),
+                'trigger_mode': ParameterValue(
+                    LaunchConfig('trigger_mode'),
+                    value_type=str,
+                ),
+
+                'chunk_mode_active': ParameterValue(
+                    LaunchConfig('chunk_mode_active'),
+                    value_type=bool,
+                ),
+                'chunk_selector_frame_id': ParameterValue(
+                    LaunchConfig('chunk_selector_frame_id'),
+                    value_type=str,
+                ),
+                'chunk_enable_frame_id': ParameterValue(
+                    LaunchConfig('chunk_enable_frame_id'),
+                    value_type=bool,
+                ),
+                'chunk_selector_exposure_time': ParameterValue(
+                    LaunchConfig('chunk_selector_exposure_time'),
+                    value_type=str,
+                ),
+                'chunk_enable_exposure_time': ParameterValue(
+                    LaunchConfig('chunk_enable_exposure_time'),
+                    value_type=bool,
+                ),
+                'chunk_selector_gain': ParameterValue(
+                    LaunchConfig('chunk_selector_gain'),
+                    value_type=str,
+                ),
+                'chunk_enable_gain': ParameterValue(
+                    LaunchConfig('chunk_enable_gain'),
+                    value_type=bool,
+                ),
+                'chunk_selector_timestamp': ParameterValue(
+                    LaunchConfig('chunk_selector_timestamp'),
+                    value_type=str,
+                ),
+                'chunk_enable_timestamp': ParameterValue(
+                    LaunchConfig('chunk_enable_timestamp'),
+                    value_type=bool,
+                ),
+
                 'ffmpeg_image_transport.encoding': 'hevc_nvenc',
                 'parameter_file': parameter_file,
                 'serial_number': [LaunchConfig('serial')],
@@ -179,6 +309,7 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     """Create composable node by calling opaque function."""
+
     return LaunchDescription(
         [
             LaunchArg(
@@ -199,8 +330,39 @@ def generate_launch_description():
             LaunchArg(
                 'parameter_file',
                 default_value='',
-                description='path to ros parameter definition file (override camera type)',
+                description=(
+                    'path to ros parameter definition file '
+                    '(override camera type)'
+                ),
             ),
+
+            # Arguments supplied by stereorig_2.launch.py.
+            LaunchArg('debug'),
+            LaunchArg('compute_brightness'),
+            LaunchArg('adjust_timestamp'),
+            LaunchArg('dump_node_map'),
+
+            LaunchArg('gain_auto'),
+            LaunchArg('exposure_auto'),
+            LaunchArg('user_set_selector'),
+            LaunchArg('user_set_load'),
+
+            LaunchArg('frame_rate_auto'),
+            LaunchArg('frame_rate'),
+            LaunchArg('frame_rate_enable'),
+            LaunchArg('buffer_queue_size'),
+            LaunchArg('trigger_mode'),
+
+            LaunchArg('chunk_mode_active'),
+            LaunchArg('chunk_selector_frame_id'),
+            LaunchArg('chunk_enable_frame_id'),
+            LaunchArg('chunk_selector_exposure_time'),
+            LaunchArg('chunk_enable_exposure_time'),
+            LaunchArg('chunk_selector_gain'),
+            LaunchArg('chunk_enable_gain'),
+            LaunchArg('chunk_selector_timestamp'),
+            LaunchArg('chunk_enable_timestamp'),
+
             OpaqueFunction(function=launch_setup),
         ]
     )
