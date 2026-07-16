@@ -309,12 +309,12 @@ def launch_setup(context, *args, **kwargs):
             camera_overrides[parameter_name] = parameter_value
 
     line2_v33enable = LaunchConfig(
-        'line2_v33enable'
+    'line2_v33enable'
     ).perform(context)
 
     if line2_v33enable:
         camera_overrides['line2_v33enable'] = ParameterValue(
-            line2_v33enable,
+            LaunchConfig('line2_v33enable'),
             value_type=bool,
         )
 
