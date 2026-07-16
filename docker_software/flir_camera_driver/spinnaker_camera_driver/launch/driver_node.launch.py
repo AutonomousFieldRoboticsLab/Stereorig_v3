@@ -70,7 +70,7 @@ example_parameters = {
         'chunk_selector_timestamp': 'Timestamp',
         'chunk_enable_timestamp': True,
 
-        'adc_bit_depth': "Bit12",
+        'adc_bit_depth': 'Bit12',
     },
 
     'blackfly': {
@@ -101,7 +101,7 @@ example_parameters = {
         'offset_y': 0,
         'image_width': 2048,
         'image_height': 1536,
-        'pixel_format': 'RGB8',  # 'BayerRG8, 'RGB8' or 'Mono8'
+        'pixel_format': 'RGB8',
         'frame_rate_continous': True,
         'frame_rate': 100.0,
         'trigger_mode': 'Off',
@@ -190,6 +190,134 @@ def launch_setup(context, *args, **kwargs):
             'no example parameters available for type ' + camera_type
         )
 
+    # Common parameters supplied by both stereorig launch files.
+    # This dictionary is applied after example_parameters, so these values
+    # override the camera-type defaults.
+    camera_overrides = {
+        'debug': ParameterValue(
+            LaunchConfig('debug'),
+            value_type=bool,
+        ),
+        'compute_brightness': ParameterValue(
+            LaunchConfig('compute_brightness'),
+            value_type=bool,
+        ),
+        'adjust_timestamp': ParameterValue(
+            LaunchConfig('adjust_timestamp'),
+            value_type=bool,
+        ),
+        'dump_node_map': ParameterValue(
+            LaunchConfig('dump_node_map'),
+            value_type=bool,
+        ),
+
+        'gain_auto': ParameterValue(
+            LaunchConfig('gain_auto'),
+            value_type=str,
+        ),
+        'exposure_auto': ParameterValue(
+            LaunchConfig('exposure_auto'),
+            value_type=str,
+        ),
+        'user_set_selector': ParameterValue(
+            LaunchConfig('user_set_selector'),
+            value_type=str,
+        ),
+        'user_set_load': ParameterValue(
+            LaunchConfig('user_set_load'),
+            value_type=str,
+        ),
+
+        'frame_rate_auto': ParameterValue(
+            LaunchConfig('frame_rate_auto'),
+            value_type=str,
+        ),
+        'frame_rate': ParameterValue(
+            LaunchConfig('frame_rate'),
+            value_type=float,
+        ),
+        'frame_rate_enable': ParameterValue(
+            LaunchConfig('frame_rate_enable'),
+            value_type=bool,
+        ),
+        'buffer_queue_size': ParameterValue(
+            LaunchConfig('buffer_queue_size'),
+            value_type=int,
+        ),
+        'trigger_mode': ParameterValue(
+            LaunchConfig('trigger_mode'),
+            value_type=str,
+        ),
+
+        'chunk_mode_active': ParameterValue(
+            LaunchConfig('chunk_mode_active'),
+            value_type=bool,
+        ),
+        'chunk_selector_frame_id': ParameterValue(
+            LaunchConfig('chunk_selector_frame_id'),
+            value_type=str,
+        ),
+        'chunk_enable_frame_id': ParameterValue(
+            LaunchConfig('chunk_enable_frame_id'),
+            value_type=bool,
+        ),
+        'chunk_selector_exposure_time': ParameterValue(
+            LaunchConfig('chunk_selector_exposure_time'),
+            value_type=str,
+        ),
+        'chunk_enable_exposure_time': ParameterValue(
+            LaunchConfig('chunk_enable_exposure_time'),
+            value_type=bool,
+        ),
+        'chunk_selector_gain': ParameterValue(
+            LaunchConfig('chunk_selector_gain'),
+            value_type=str,
+        ),
+        'chunk_enable_gain': ParameterValue(
+            LaunchConfig('chunk_enable_gain'),
+            value_type=bool,
+        ),
+        'chunk_selector_timestamp': ParameterValue(
+            LaunchConfig('chunk_selector_timestamp'),
+            value_type=str,
+        ),
+        'chunk_enable_timestamp': ParameterValue(
+            LaunchConfig('chunk_enable_timestamp'),
+            value_type=bool,
+        ),
+
+        'ffmpeg_image_transport.encoding': 'hevc_nvenc',
+        'parameter_file': parameter_file,
+        'serial_number': [LaunchConfig('serial')],
+    }
+
+    # Primary-only and Secondary-only arguments have empty defaults.
+    # Add a parameter only when the parent launch supplied a value.
+    optional_string_parameters = (
+        'line1_selector',
+        'line1_linemode',
+        'line2_selector',
+        'trigger_selector',
+        'trigger_source',
+        'trigger_overlap',
+    )
+
+    for parameter_name in optional_string_parameters:
+        parameter_value = LaunchConfig(parameter_name).perform(context)
+
+        if parameter_value:
+            camera_overrides[parameter_name] = parameter_value
+
+    line2_v33enable = LaunchConfig(
+        'line2_v33enable'
+    ).perform(context)
+
+    if line2_v33enable:
+        camera_overrides['line2_v33enable'] = ParameterValue(
+            line2_v33enable,
+            value_type=bool,
+        )
+
     node = Node(
         package='spinnaker_camera_driver',
         executable='camera_driver_node',
@@ -197,107 +325,7 @@ def launch_setup(context, *args, **kwargs):
         name=[LaunchConfig('camera_name')],
         parameters=[
             example_parameters[camera_type],
-
-            # These values are forwarded by stereorig_2.launch.py
-            # from parms.yaml. Because this dictionary comes after
-            # example_parameters, these values override the defaults.
-            {
-                'debug': ParameterValue(
-                    LaunchConfig('debug'),
-                    value_type=bool,
-                ),
-                'compute_brightness': ParameterValue(
-                    LaunchConfig('compute_brightness'),
-                    value_type=bool,
-                ),
-                'adjust_timestamp': ParameterValue(
-                    LaunchConfig('adjust_timestamp'),
-                    value_type=bool,
-                ),
-                'dump_node_map': ParameterValue(
-                    LaunchConfig('dump_node_map'),
-                    value_type=bool,
-                ),
-
-                'gain_auto': ParameterValue(
-                    LaunchConfig('gain_auto'),
-                    value_type=str,
-                ),
-                'exposure_auto': ParameterValue(
-                    LaunchConfig('exposure_auto'),
-                    value_type=str,
-                ),
-                'user_set_selector': ParameterValue(
-                    LaunchConfig('user_set_selector'),
-                    value_type=str,
-                ),
-                'user_set_load': ParameterValue(
-                    LaunchConfig('user_set_load'),
-                    value_type=str,
-                ),
-
-                'frame_rate_auto': ParameterValue(
-                    LaunchConfig('frame_rate_auto'),
-                    value_type=str,
-                ),
-                'frame_rate': ParameterValue(
-                    LaunchConfig('frame_rate'),
-                    value_type=float,
-                ),
-                'frame_rate_enable': ParameterValue(
-                    LaunchConfig('frame_rate_enable'),
-                    value_type=bool,
-                ),
-                'buffer_queue_size': ParameterValue(
-                    LaunchConfig('buffer_queue_size'),
-                    value_type=int,
-                ),
-                'trigger_mode': ParameterValue(
-                    LaunchConfig('trigger_mode'),
-                    value_type=str,
-                ),
-
-                'chunk_mode_active': ParameterValue(
-                    LaunchConfig('chunk_mode_active'),
-                    value_type=bool,
-                ),
-                'chunk_selector_frame_id': ParameterValue(
-                    LaunchConfig('chunk_selector_frame_id'),
-                    value_type=str,
-                ),
-                'chunk_enable_frame_id': ParameterValue(
-                    LaunchConfig('chunk_enable_frame_id'),
-                    value_type=bool,
-                ),
-                'chunk_selector_exposure_time': ParameterValue(
-                    LaunchConfig('chunk_selector_exposure_time'),
-                    value_type=str,
-                ),
-                'chunk_enable_exposure_time': ParameterValue(
-                    LaunchConfig('chunk_enable_exposure_time'),
-                    value_type=bool,
-                ),
-                'chunk_selector_gain': ParameterValue(
-                    LaunchConfig('chunk_selector_gain'),
-                    value_type=str,
-                ),
-                'chunk_enable_gain': ParameterValue(
-                    LaunchConfig('chunk_enable_gain'),
-                    value_type=bool,
-                ),
-                'chunk_selector_timestamp': ParameterValue(
-                    LaunchConfig('chunk_selector_timestamp'),
-                    value_type=str,
-                ),
-                'chunk_enable_timestamp': ParameterValue(
-                    LaunchConfig('chunk_enable_timestamp'),
-                    value_type=bool,
-                ),
-
-                'ffmpeg_image_transport.encoding': 'hevc_nvenc',
-                'parameter_file': parameter_file,
-                'serial_number': [LaunchConfig('serial')],
-            },
+            camera_overrides,
         ],
         remappings=[
             ('~/control', '/exposure_control/control'),
@@ -336,7 +364,7 @@ def generate_launch_description():
                 ),
             ),
 
-            # Arguments supplied by stereorig_2.launch.py.
+            # Common arguments supplied by both stereorig launch files.
             LaunchArg('debug'),
             LaunchArg('compute_brightness'),
             LaunchArg('adjust_timestamp'),
@@ -362,6 +390,40 @@ def generate_launch_description():
             LaunchArg('chunk_enable_gain'),
             LaunchArg('chunk_selector_timestamp'),
             LaunchArg('chunk_enable_timestamp'),
+
+            # Primary-only GPIO output settings.
+            # These remain empty on the Secondary Jetson.
+            LaunchArg(
+                'line1_selector',
+                default_value='',
+            ),
+            LaunchArg(
+                'line1_linemode',
+                default_value='',
+            ),
+            LaunchArg(
+                'line2_selector',
+                default_value='',
+            ),
+            LaunchArg(
+                'line2_v33enable',
+                default_value='',
+            ),
+
+            # Secondary-only external-trigger settings.
+            # These remain empty on the Primary Jetson.
+            LaunchArg(
+                'trigger_selector',
+                default_value='',
+            ),
+            LaunchArg(
+                'trigger_source',
+                default_value='',
+            ),
+            LaunchArg(
+                'trigger_overlap',
+                default_value='',
+            ),
 
             OpaqueFunction(function=launch_setup),
         ]

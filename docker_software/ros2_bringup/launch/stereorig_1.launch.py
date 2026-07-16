@@ -59,6 +59,10 @@ def generate_launch_description():
     chunk_selector_timestamp = launch_params["jetson_1"]['ros_parameters']['chunk_selector_timestamp']
     chunk_enable_timestamp = launch_params["jetson_1"]['ros_parameters']['chunk_enable_timestamp']
     #adc_bit_depth = launch_params["jetson_1"]['ros_parameters']['adc_bit_depth']
+    line1_selector = launch_params["jetson_1"]["ros_parameters"]["line1_selector"]
+    line1_linemode = launch_params["jetson_1"]["ros_parameters"]["line1_linemode"]
+    line2_selector = launch_params["jetson_1"]["ros_parameters"]["line2_selector"]
+    line2_v33enable = launch_params["jetson_1"]["ros_parameters"]["line2_v33enable"]
     namespace = LaunchConfiguration('namespace')
 
    
@@ -110,7 +114,11 @@ def generate_launch_description():
                     'chunk_selector_gain': chunk_selector_gain,
                     'chunk_enable_gain': chunk_enable_gain,
                     'chunk_selector_timestamp': chunk_selector_timestamp,
-                    'chunk_enable_timestamp': chunk_enable_timestamp
+                    'chunk_enable_timestamp': chunk_enable_timestamp,
+                    'line1_selector': line1_selector,
+                    'line1_linemode': line1_linemode,
+                    'line2_selector': line2_selector,
+                    'line2_v33enable': line2_v33enable
                 }.items()
             )
         ]
