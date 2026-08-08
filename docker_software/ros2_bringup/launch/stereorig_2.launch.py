@@ -1,4 +1,5 @@
 import os
+import subprocess
 import launch
 import yaml
 import datetime
@@ -8,6 +9,21 @@ from launch_ros.actions import Node, PushRosNamespace
 from launch.actions import IncludeLaunchDescription, ExecuteProcess, OpaqueFunction, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
+
+PRIMARY_IP = '192.168.0.150'
+STEREO_PARAMS_PATH = '/ws/data/config/parms.yaml'
+SECONDARY_ONLY_PARAMS_PATH = '/ws/data/config/parms_second_only.yaml'
+
+
+def primary_is_reachable():
+    """Return True when the primary system responds to one short ping."""
+    result = subprocess.run(
+        ['ping', '-c', '1', '-W', '1', PRIMARY_IP],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+    return result.returncode == 0
 
 def bag_exists(time_cap):
     file_path = '/ws/data/'
@@ -26,7 +42,15 @@ def generate_launch_description():
     if num_files > 0:
         ct_str = ct_str + "_" + str(num_files)
 
-    launch_params_path = os.path.join('/ws/data/config/parms.yaml')
+    if primary_is_reachable():
+        launch_params_path = STEREO_PARAMS_PATH
+        print(f'Primary system {PRIMARY_IP} is reachable; using stereo parameters: '
+              f'{launch_params_path}')
+    else:
+        launch_params_path = SECONDARY_ONLY_PARAMS_PATH
+        print(f'Primary system {PRIMARY_IP} is unreachable; using secondary-only '
+              f'parameters: {launch_params_path}')
+
     with open(launch_params_path, 'r') as f:
         launch_params = yaml.safe_load(f)
 
@@ -59,9 +83,11 @@ def generate_launch_description():
     chunk_selector_timestamp = launch_params["jetson_2"]['ros_parameters']['chunk_selector_timestamp']
     chunk_enable_timestamp = launch_params["jetson_2"]['ros_parameters']['chunk_enable_timestamp']
     #adc_bit_depth = launch_params["jetson_2"]['ros_parameters']['adc_bit_depth']
-    trigger_selector = launch_params["jetson_2"]["ros_parameters"]["trigger_selector"]
-    trigger_source = launch_params["jetson_2"]["ros_parameters"]["trigger_source"]
-    trigger_overlap = launch_params["jetson_2"]["ros_parameters"]["trigger_overlap"]
+    # These settings are only needed in stereo mode. Use harmless defaults for
+    # the secondary-only file, where trigger_mode is Off.
+    trigger_selector = launch_params["jetson_2"]["ros_parameters"].get("trigger_selector", "FrameStart")
+    trigger_source = launch_params["jetson_2"]["ros_parameters"].get("trigger_source", "Line3")
+    trigger_overlap = launch_params["jetson_2"]["ros_parameters"].get("trigger_overlap", "ReadOut")
     namespace = LaunchConfiguration('namespace')
 
    
