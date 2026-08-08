@@ -59,6 +59,9 @@ def generate_launch_description():
     chunk_selector_timestamp = launch_params["jetson_2"]['ros_parameters']['chunk_selector_timestamp']
     chunk_enable_timestamp = launch_params["jetson_2"]['ros_parameters']['chunk_enable_timestamp']
     #adc_bit_depth = launch_params["jetson_2"]['ros_parameters']['adc_bit_depth']
+    trigger_selector = launch_params["jetson_2"]["ros_parameters"]["trigger_selector"]
+    trigger_source = launch_params["jetson_2"]["ros_parameters"]["trigger_source"]
+    trigger_overlap = launch_params["jetson_2"]["ros_parameters"]["trigger_overlap"]
     namespace = LaunchConfiguration('namespace')
 
    
@@ -110,7 +113,10 @@ def generate_launch_description():
                     'chunk_selector_gain': chunk_selector_gain,
                     'chunk_enable_gain': chunk_enable_gain,
                     'chunk_selector_timestamp': chunk_selector_timestamp,
-                    'chunk_enable_timestamp': chunk_enable_timestamp
+                    'chunk_enable_timestamp': chunk_enable_timestamp,
+                    'trigger_selector': trigger_selector,
+                    'trigger_source': trigger_source,
+                    'trigger_overlap': trigger_overlap
                 }.items()
             )
         ]
